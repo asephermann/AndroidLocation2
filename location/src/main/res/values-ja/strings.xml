@@ -1,0 +1,11 @@
+<resources>
+    <string name="str_mod_loc_searching">検索場所...</string>
+    <string name="str_mod_loc_is_correct">これは正しいです？</string>
+    <string name="str_mod_loc_location_not_found">私たちはあなたの場所を見つけることができなかったようです。</string>
+    <string name="str_mod_loc_refresh">リフレッシュ</string>
+    <string name="str_mod_loc_yes">はい</string>
+    <string name="str_mod_loc_high_accuracy">出席を記録するには、GPSで高精度を有効にする必要があります</string>
+    <string name="you">あなた</string>
+    <string name="your_company">あなたの会社</string>
+    <string name="str_accuracy">精度 %s メートル</string>
+</resources>

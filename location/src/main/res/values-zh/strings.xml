@@ -1,0 +1,11 @@
+<resources>
+    <string name="str_mod_loc_searching">搜索位置...</string>
+    <string name="str_mod_loc_is_correct">这个对吗？</string>
+    <string name="str_mod_loc_location_not_found">我们似乎无法找到自己的位置。</string>
+    <string name="str_mod_loc_refresh">刷新</string>
+    <string name="str_mod_loc_yes">是</string>
+    <string name="str_mod_loc_high_accuracy">GPS必须启用“高精度”才能记录出勤</string>
+    <string name="you">您</string>
+    <string name="your_company">你的公司</string>
+    <string name="str_accuracy">精度%s米</string>
+</resources>
