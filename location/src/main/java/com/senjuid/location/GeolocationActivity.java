@@ -2,8 +2,6 @@ package com.senjuid.location;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,16 +13,18 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -89,23 +89,24 @@ public abstract class GeolocationActivity extends BaseActivity {
 
             workLat = -6.174793; // default lat
             workLon = 106.827144; // default lon
-            if(workLocationData != null){
-                try{
+            if (workLocationData != null) {
+                try {
                     JSONObject data = new JSONObject(workLocationData);
                     JSONArray locArray = data.getJSONArray("data");
 
-                    if(locArray != null && locArray.length()> 0){
-                        for(int i=0;i<locArray.length();i++){
+                    if (locArray != null && locArray.length() > 0) {
+                        for (int i = 0; i < locArray.length(); i++) {
                             addCompanyLocation(locArray.getJSONObject(i));
 
                             // set start location
-                            if(i == 0){
+                            if (i == 0) {
                                 workLat = locArray.getJSONObject(i).optDouble("work_lat");
                                 workLon = locArray.getJSONObject(i).optDouble("work_lon");
                             }
                         }
                     }
-                }catch (JSONException je){}
+                } catch (JSONException je) {
+                }
             }
 
             LatLng sydney = new LatLng(workLat, workLon);
@@ -139,7 +140,7 @@ public abstract class GeolocationActivity extends BaseActivity {
 
         // check google api available
         GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-        if(googleApiAvailability.isGooglePlayServicesAvailable(this) != ConnectionResult.SUCCESS){
+        if (googleApiAvailability.isGooglePlayServicesAvailable(this) != ConnectionResult.SUCCESS) {
             googleApiAvailability.getErrorDialog(this, 404, 200, new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialog) {
@@ -226,7 +227,7 @@ public abstract class GeolocationActivity extends BaseActivity {
 
                         // show message
                         showHideLoading(false);
-                        if(getIntent().getStringExtra("message2") != null) {
+                        if (getIntent().getStringExtra("message2") != null) {
                             textView_wrong_location.setText(getIntent().getStringExtra("message2"));
                         } else {
                             textView_wrong_location.setText(getString(R.string.str_mod_loc_high_accuracy));
@@ -252,7 +253,7 @@ public abstract class GeolocationActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CHECK_SETTINGS && resultCode == RESULT_OK) {
-            geolocationViewModel.startUpdateLocation();
+            geolocationViewModel.startUpdateLocation(getApplicationContext());
         } else {
             showHideLoading(false);
             setMyLocation(null);
@@ -265,7 +266,7 @@ public abstract class GeolocationActivity extends BaseActivity {
         }
 
         showHideLoading(true);
-        geolocationViewModel.startUpdateLocation();
+        geolocationViewModel.startUpdateLocation(getApplicationContext());
     }
 
 
@@ -281,6 +282,9 @@ public abstract class GeolocationActivity extends BaseActivity {
         Point mapPoint = mMap.getProjection().toScreenLocation(myLocation);
         mapPoint.set(mapPoint.x, mapPoint.y); // change these values as you need , just hard coded a value if you want you can give it based on a ratio like using DisplayMetrics  as well
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mMap.getProjection().fromScreenLocation(mapPoint), 16.0f));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
         mMap.setMyLocationEnabled(true);
 
         // set accuracy

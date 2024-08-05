@@ -1,12 +1,16 @@
 package com.senjuid.location;
 
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
-import android.support.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -44,7 +48,7 @@ public class GeolocationViewModel extends ViewModel {
 
     private boolean isFirstRequest = true;
 
-    public GeolocationViewModel(Context appContext){
+    public GeolocationViewModel(Context appContext) {
         this.wrContext = new WeakReference<>(appContext);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(appContext);
         settingsClient = LocationServices.getSettingsClient(appContext);
@@ -52,17 +56,20 @@ public class GeolocationViewModel extends ViewModel {
 
 
     // MARK: Public Functions
-    public void startUpdateLocation(){
-        if(isFirstRequest) {
+    public void startUpdateLocation(Context context) {
+        if (isFirstRequest) {
             isFirstRequest = false;
 
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
             fusedLocationProviderClient.getLastLocation()
-                .addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        GeolocationViewModel.this.location.setValue(location);
-                    }
-                });
+                    .addOnSuccessListener(new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            GeolocationViewModel.this.location.setValue(location);
+                        }
+                    });
         }
 
         locationRequest = createLocationRequest();
@@ -71,6 +78,9 @@ public class GeolocationViewModel extends ViewModel {
                 .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            return;
+                        }
                         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
                     }
                 })
@@ -108,11 +118,11 @@ public class GeolocationViewModel extends ViewModel {
         }
     }
 
-    public String formatAccuracy(String wording, Location location){
+    public String formatAccuracy(String wording, Location location) {
         float accuracy;
-        if(location != null){
+        if (location != null) {
             accuracy = location.getAccuracy();
-            return String.format(wording, (int)accuracy);
+            return String.format(wording, (int) accuracy);
         }
         return "";
     }
@@ -143,24 +153,26 @@ public class GeolocationViewModel extends ViewModel {
 
 
     // MARK: Private variable
-    private LocationCallback locationCallback = new LocationCallback(){
-        @Override
-        public void onLocationAvailability(LocationAvailability locationAvailability) {
-            if(!locationAvailability.isLocationAvailable()){
+    private LocationCallback locationCallback = new LocationCallback() {
+        public void onLocationAvailability(LocationAvailability locationAvailability, Context context) {
+            if (!locationAvailability.isLocationAvailable()) {
 //                stopLocationUpdates();
 
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
                 fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        GeolocationViewModel.this.location.setValue(location);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        GeolocationViewModel.this.location.setValue(null);
-                    }
-                });
+                            @Override
+                            public void onSuccess(Location location) {
+                                GeolocationViewModel.this.location.setValue(location);
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                GeolocationViewModel.this.location.setValue(null);
+                            }
+                        });
             }
         }
 
